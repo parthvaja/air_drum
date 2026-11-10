@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air Drum</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #08080f;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  .header {
+    text-align: center;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1030 100%);
+    border-bottom: 1px solid #2a2040;
+  }
+  .header h1 {
+    font-size: 2em;
+    font-weight: 800;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, #ff4466, #ffaa33, #44ddff, #aa66ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header p { color: #777; font-size: 0.85em; margin-top: 2px; }
+
+  .layout {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* Video feed */
+  .video-wrap {
+    flex: 5;
+    min-width: 0;
+  }
+  .video-wrap img {
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #1a1a2a;
+    display: block;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    flex: 2;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card {
+    background: #111119;
+    border: 1px solid #222233;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .card-title {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 10px;
+  }
+  .stat-box {
+    flex: 1;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 2.2em;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .stat-label {
+    font-size: 0.7em;
+    color: #888;
+    text-transform: uppercase;
+  }
+  .bpm-color { color: #ffaa33; }
+  .hits-color { color: #44ddff; }
+  .fps-color { color: #66cc66; }
+
+  /* Zone grid: 2 rows x 4 cols */
+  .zone-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .zone-cell {
+    background: #0e0e18;
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: border-color 0.1s, background 0.1s, transform 0.08s;
+    position: relative;
+  }
+  .zone-cell.flash {
+    transform: scale(1.06);
+  }
+  .zone-letter {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #fff;
+  }
+  .zone-name {
+    font-size: 0.65em;
+    color: #aaa;
+    margin: 2px 0;
+  }
+  .zone-count {
+    font-size: 1.5em;
+    font-weight: 700;
+  }
+
+  /* Per-zone colors */
+  .zone-A { border-color: #ffff00; } .zone-A .zone-count { color: #ffff00; }
+  .zone-A.flash { background: rgba(255,255,0,0.15); }
+  .zone-B { border-color: #00c8ff; } .zone-B .zone-count { color: #00c8ff; }
+  .zone-B.flash { background: rgba(0,200,255,0.15); }
+  .zone-C { border-color: #ff9600; } .zone-C .zone-count { color: #ff9600; }
+  .zone-C.flash { background: rgba(255,150,0,0.15); }
+  .zone-D { border-color: #c8c800; } .zone-D .zone-count { color: #c8c800; }
+  .zone-D.flash { background: rgba(200,200,0,0.15); }
+  .zone-E { border-color: #c800c8; } .zone-E .zone-count { color: #c800c8; }
+  .zone-E.flash { background: rgba(200,0,200,0.15); }
+  .zone-F { border-color: #ffa500; } .zone-F .zone-count { color: #ffa500; }
+  .zone-F.flash { background: rgba(255,165,0,0.15); }
+  .zone-G { border-color: #ff5050; } .zone-G .zone-count { color: #ff5050; }
+  .zone-G.flash { background: rgba(255,80,80,0.15); }
+  .zone-H { border-color: #00ffc8; } .zone-H .zone-count { color: #00ffc8; }
+  .zone-H.flash { background: rgba(0,255,200,0.15); }
+
+  .last-hit-banner {
+    text-align: center;
+    font-size: 1em;
+    font-weight: 600;
+    color: #ff4466;
+    min-height: 1.4em;
+    padding: 4px;
+  }
+
+  .btn-reset {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #e94560, #c73050);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-reset:hover { opacity: 0.85; }
+
+  @media (max-width: 750px) {
+    .layout { flex-direction: column; }
+    .sidebar { min-width: unset; }
+    .zone-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AIR DRUM</h1>
+  <p>Move your wrists into a zone to play &middot; 8 percussion sounds</p>
+</div>
+
+<div class="layout">
+  <div class="video-wrap">
+    <img id="feed" src="/video_feed" alt="Camera Feed">
+  </div>
+
+  <div class="sidebar">
+    <!-- Stats -->
+    <div class="card">
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val bpm-color" id="bpm">0</div>
+          <div class="stat-label">BPM</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val hits-color" id="totalHits">0</div>
+          <div class="stat-label">Hits</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val fps-color" id="fps">0</div>
+          <div class="stat-label">FPS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone grid -->
+    <div class="card">
+      <div class="card-title">Percussion Zones</div>
+      <div class="zone-grid">
+        {% for z in zones %}
+        <div class="zone-cell zone-{{ z.id }}" id="zone-{{ z.id }}">
+          <div class="zone-letter">{{ z.id }}</div>
+          <div class="zone-name">{{ z.label }}</div>
+          <div class="zone-count" id="count-{{ z.id }}">0</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="last-hit-banner" id="lastHit">&nbsp;</div>
+
+    <button class="btn-reset" onclick="resetCounters()">Reset All</button>
+  </div>
+</div>
+
+<script>
+const prevCounts = {};
+
+function updateStats() {
+  fetch('/stats')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('bpm').textContent = d.bpm;
+      document.getElementById('totalHits').textContent = d.total_hits;
+      document.getElementById('fps').textContent = d.fps;
+      if (d.last_hit) {
+        document.getElementById('lastHit').textContent = d.last_hit + '!';
+      }
+      for (const [zid, count] of Object.entries(d.hit_counts)) {
+        const el = document.getElementById('count-' + zid);
+        if (el) el.textContent = count;
+        // Flash on new hit
+        if (prevCounts[zid] !== undefined && count > prevCounts[zid]) {
+          const cell = document.getElementById('zone-' + zid);
+          if (cell) {
+            cell.classList.add('flash');
+            setTimeout(() => cell.classList.remove('flash'), 180);
+          }
+        }
+        prevCounts[zid] = count;
+      }
+    })
+    .catch(() => {});
+}
+
+function resetCounters() {
+  fetch('/reset', { method: 'POST' }).then(() => {
+    document.getElementById('lastHit').innerHTML = '&nbsp;';
+    updateStats();
+  });
+}
+
+setInterval(updateStats, 150);
+updateStats();
+</script>
+</body>
+</html>
